@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>注音符號大冒險</title>
+    <title>注音符號大冒險 (國語日報修正版)</title>
     <style>
         :root {
             --bg: #FDF6E3;
             --text: #555;
             --correct: #6BCB77;
             --wrong: #FF6B6B;
-            --header-h: 50px;
-            --nav-h: 50px;
         }
 
         body {
@@ -22,7 +20,7 @@
             color: var(--text);
             margin: 0;
             padding: 10px;
-            height: 100vh; /* 固定高度，防止頁面捲動 */
+            height: 100vh;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -86,7 +84,7 @@
             border-radius: 20px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
             display: none;
-            flex: 1; /* 填滿剩餘高度 */
+            flex: 1;
             flex-direction: column;
             overflow: hidden;
             padding: 15px;
@@ -103,7 +101,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 上半部 */
         .top-section {
             flex-shrink: 0;
             margin-bottom: 10px;
@@ -112,7 +109,6 @@
             justify-content: center;
         }
 
-        /* 學習區顯示框 */
         .display-area {
             text-align: center;
             background: #fff;
@@ -126,7 +122,6 @@
             justify-content: center;
         }
 
-        /* 測驗區頭部 */
         .quiz-header {
             display: flex;
             justify-content: space-between;
@@ -140,7 +135,6 @@
         
         .score-board { font-weight: bold; color: #4A89A6; }
 
-        /* 下半部：捲動列表區 */
         .grid-wrapper {
             flex: 1;
             overflow-y: auto;
@@ -240,7 +234,7 @@
 <body>
 
     <h1>🌈 注音符號大冒險</h1>
-    <div class="voice-control">🔊 Google 慢速發音</div>
+    <div class="voice-control" id="voice-status">🔊 國語日報原音修正版</div>
 
     <div class="nav-container">
         <button class="nav-btn active" onclick="switchMode('learning')">📖 學習區</button>
@@ -274,49 +268,56 @@
     <div id="feedback" class="feedback-overlay"></div>
 
 <script>
-    // --- 1. 資料庫 ---
+    // --- 1. 資料庫 (ID 已針對 MDN 網站順序進行修正) ---
+    // MDN 順序：1-21(聲母), 22-34(韻母 ㄚ~ㄦ), 35-37(介音 ㄧㄨㄩ)
     const zhuyinData = [
-        { char: "ㄅ", examples: [{w:"爸爸", p:"ㄅㄚˋ ˙ㄅㄚ"}, {w:"包子", p:"ㄅㄠ ˙ㄗ"}] },
-        { char: "ㄆ", examples: [{w:"蘋果", p:"ㄆㄧㄥˊ ㄍㄨㄛˇ"}, {w:"朋友", p:"ㄆㄥˊ ㄧㄡˇ"}] },
-        { char: "ㄇ", examples: [{w:"媽媽", p:"ㄇㄚ ˙ㄇㄚ"}, {w:"麵包", p:"ㄇㄧㄢˋ ㄅㄠ"}] },
-        { char: "ㄈ", examples: [{w:"飛機", p:"ㄈㄟ ㄐㄧ"}, {w:"蜜蜂", p:"ㄇㄧˋ ㄈㄥ"}] },
-        { char: "ㄉ", examples: [{w:"弟弟", p:"ㄉㄧˋ ˙ㄉㄧ"}, {w:"蛋糕", p:"ㄉㄢˋ ㄍㄠ"}] },
-        { char: "ㄊ", examples: [{w:"兔子", p:"ㄊㄨˋ ˙ㄗ"}, {w:"太陽", p:"ㄊㄞˋ ㄧㄤˊ"}] },
-        { char: "ㄋ", examples: [{w:"牛奶", p:"ㄋㄧㄡˊ ㄋㄞˇ"}, {w:"奶奶", p:"ㄋㄞˇ ˙ㄋㄞ"}] },
-        { char: "ㄌ", examples: [{w:"老虎", p:"ㄌㄠˇ ㄏㄨˇ"}, {w:"快樂", p:"ㄎㄨㄞˋ ㄌㄜˋ"}] },
-        { char: "ㄍ", examples: [{w:"哥哥", p:"ㄍㄜ ˙ㄍㄜ"}, {w:"蘋果", p:"ㄆㄧㄥˊ ㄍㄨㄛˇ"}] },
-        { char: "ㄎ", examples: [{w:"恐龍", p:"ㄎㄨㄥˇ ㄌㄨㄥˊ"}, {w:"卡片", p:"ㄎㄚˇ ㄆㄧㄢˋ"}] },
-        { char: "ㄏ", examples: [{w:"花朵", p:"ㄏㄨㄚ ㄉㄨㄛˇ"}, {w:"猴子", p:"ㄏㄡˊ ˙ㄗ"}] },
-        { char: "ㄐ", examples: [{w:"雞蛋", p:"ㄐㄧ ㄉㄢˋ"}, {w:"積木", p:"ㄐㄧ ㄇㄨˋ"}] },
-        { char: "ㄑ", examples: [{w:"氣球", p:"ㄑㄧˋ ㄑㄧㄡˊ"}, {w:"企鵝", p:"ㄑㄧˋ ㄜˊ"}] },
-        { char: "ㄒ", examples: [{w:"西瓜", p:"ㄒㄧ ㄍㄨㄚ"}, {w:"星星", p:"ㄒㄧㄥ ㄒㄧㄥ"}] },
-        { char: "ㄓ", examples: [{w:"蜘蛛", p:"ㄓ ㄓㄨ"}, {w:"桌子", p:"ㄓㄨㄛ ˙ㄗ"}] },
-        { char: "ㄔ", examples: [{w:"吃飯", p:"ㄔ ㄈㄢˋ"}, {w:"車子", p:"ㄔㄜ ˙ㄗ"}] },
-        { char: "ㄕ", examples: [{w:"獅子", p:"ㄕ ˙ㄗ"}, {w:"書本", p:"ㄕㄨ ㄅㄣˇ"}] },
-        { char: "ㄖ", examples: [{w:"熱狗", p:"ㄖㄜˋ ㄍㄡˇ"}, {w:"日期", p:"ㄖˋ ㄑㄧˊ"}] },
-        { char: "ㄗ", examples: [{w:"早安", p:"ㄗㄠˇ ㄢ"}, {w:"走路", p:"ㄗㄡˇ ㄌㄨˋ"}] },
-        { char: "ㄘ", examples: [{w:"草莓", p:"ㄘㄠˇ ㄇㄟˊ"}, {w:"廁所", p:"ㄘㄜˋ ㄙㄨㄛˇ"}] },
-        { char: "ㄙ", examples: [{w:"松鼠", p:"ㄙㄨㄥ ㄕㄨˇ"}, {w:"森林", p:"ㄙㄣ ㄌㄧㄣˊ"}] },
-        { char: "ㄧ", examples: [{w:"衣服", p:"ㄧ ㄈㄨˊ"}, {w:"椅子", p:"ㄧˇ ˙ㄗ"}] },
-        { char: "ㄨ", examples: [{w:"烏龜", p:"ㄨ ㄍㄨㄟ"}, {w:"娃娃", p:"ㄨㄚˊ ˙ㄨㄚ"}] },
-        { char: "ㄩ", examples: [{w:"雨傘", p:"ㄩˇ ㄙㄢˇ"}, {w:"玉米", p:"ㄩˋ ㄇㄧˇ"}] },
-        { char: "ㄚ", examples: [{w:"鴨子", p:"ㄧㄚ ˙ㄗ"}, {w:"牙齒", p:"ㄧㄚˊ ㄔˇ"}] },
-        { char: "ㄛ", examples: [{w:"薄荷", p:"ㄅㄛˋ ˙ㄏㄜ"}, {w:"佛祖", p:"ㄈㄛˊ ㄗㄨˇ"}] },
-        { char: "ㄜ", examples: [{w:"天鵝", p:"ㄊㄧㄢ ㄜˊ"}, {w:"可樂", p:"ㄎㄜˇ ㄌㄜˋ"}] },
-        { char: "ㄝ", examples: [{w:"爺爺", p:"ㄧㄝˊ ˙ㄧㄝ"}, {w:"葉子", p:"ㄧㄝˋ ˙ㄗ"}] },
-        { char: "ㄞ", examples: [{w:"奶奶", p:"ㄋㄞˇ ˙ㄋㄞ"}, {w:"海豚", p:"ㄏㄞˇ ㄊㄨㄣˊ"}] },
-        { char: "ㄟ", examples: [{w:"妹妹", p:"ㄇㄟˋ ˙ㄇㄟ"}, {w:"杯子", p:"ㄅㄟ ˙ㄗ"}] },
-        { char: "ㄠ", examples: [{w:"小貓", p:"ㄒㄧㄠˇ ㄇㄠ"}, {w:"草莓", p:"ㄘㄠˇ ㄇㄟˊ"}] },
-        { char: "ㄡ", examples: [{w:"猴子", p:"ㄏㄡˊ ˙ㄗ"}, {w:"小狗", p:"ㄒㄧㄠˇ ㄍㄡˇ"}] },
-        { char: "ㄢ", examples: [{w:"雞蛋", p:"ㄐㄧ ㄉㄢˋ"}, {w:"晚安", p:"ㄨㄢˇ ㄢ"}] },
-        { char: "ㄣ", examples: [{w:"大門", p:"ㄉㄚˋ ㄇㄣˊ"}, {w:"森林", p:"ㄙㄣ ㄌㄧㄣˊ"}] },
-        { char: "ㄤ", examples: [{w:"糖果", p:"ㄊㄤˊ ㄍㄨㄛˇ"}, {w:"太陽", p:"ㄊㄞˋ ㄧㄤˊ"}] },
-        { char: "ㄥ", examples: [{w:"蜜蜂", p:"ㄇㄧˋ ㄈㄥ"}, {w:"電燈", p:"ㄉㄧㄢˋ ㄉㄥ"}] },
-        { char: "ㄦ", examples: [{w:"耳朵", p:"ㄦˇ ㄉㄨㄛ"}, {w:"兒子", p:"ㄦˊ ˙ㄗ"}] }
+        // 聲母 (1-21)
+        { char: "ㄅ", id: 1, examples: [{w:"爸爸", p:"ㄅㄚˋ ˙ㄅㄚ"}, {w:"包子", p:"ㄅㄠ ˙ㄗ"}] },
+        { char: "ㄆ", id: 2, examples: [{w:"蘋果", p:"ㄆㄧㄥˊ ㄍㄨㄛˇ"}, {w:"朋友", p:"ㄆㄥˊ ㄧㄡˇ"}] },
+        { char: "ㄇ", id: 3, examples: [{w:"媽媽", p:"ㄇㄚ ˙ㄇㄚ"}, {w:"麵包", p:"ㄇㄧㄢˋ ㄅㄠ"}] },
+        { char: "ㄈ", id: 4, examples: [{w:"飛機", p:"ㄈㄟ ㄐㄧ"}, {w:"蜜蜂", p:"ㄇㄧˋ ㄈㄥ"}] },
+        { char: "ㄉ", id: 5, examples: [{w:"弟弟", p:"ㄉㄧˋ ˙ㄉㄧ"}, {w:"蛋糕", p:"ㄉㄢˋ ㄍㄠ"}] },
+        { char: "ㄊ", id: 6, examples: [{w:"兔子", p:"ㄊㄨˋ ˙ㄗ"}, {w:"太陽", p:"ㄊㄞˋ ㄧㄤˊ"}] },
+        { char: "ㄋ", id: 7, examples: [{w:"牛奶", p:"ㄋㄧㄡˊ ㄋㄞˇ"}, {w:"奶奶", p:"ㄋㄞˇ ˙ㄋㄞ"}] },
+        { char: "ㄌ", id: 8, examples: [{w:"老虎", p:"ㄌㄠˇ ㄏㄨˇ"}, {w:"快樂", p:"ㄎㄨㄞˋ ㄌㄜˋ"}] },
+        { char: "ㄍ", id: 9, examples: [{w:"哥哥", p:"ㄍㄜ ˙ㄍㄜ"}, {w:"蘋果", p:"ㄆㄧㄥˊ ㄍㄨㄛˇ"}] },
+        { char: "ㄎ", id: 10, examples: [{w:"恐龍", p:"ㄎㄨㄥˇ ㄌㄨㄥˊ"}, {w:"卡片", p:"ㄎㄚˇ ㄆㄧㄢˋ"}] },
+        { char: "ㄏ", id: 11, examples: [{w:"花朵", p:"ㄏㄨㄚ ㄉㄨㄛˇ"}, {w:"猴子", p:"ㄏㄡˊ ˙ㄗ"}] },
+        { char: "ㄐ", id: 12, examples: [{w:"雞蛋", p:"ㄐㄧ ㄉㄢˋ"}, {w:"積木", p:"ㄐㄧ ㄇㄨˋ"}] },
+        { char: "ㄑ", id: 13, examples: [{w:"氣球", p:"ㄑㄧˋ ㄑㄧㄡˊ"}, {w:"企鵝", p:"ㄑㄧˋ ㄜˊ"}] },
+        { char: "ㄒ", id: 14, examples: [{w:"西瓜", p:"ㄒㄧ ㄍㄨㄚ"}, {w:"星星", p:"ㄒㄧㄥ ㄒㄧㄥ"}] },
+        { char: "ㄓ", id: 15, examples: [{w:"蜘蛛", p:"ㄓ ㄓㄨ"}, {w:"桌子", p:"ㄓㄨㄛ ˙ㄗ"}] },
+        { char: "ㄔ", id: 16, examples: [{w:"吃飯", p:"ㄔ ㄈㄢˋ"}, {w:"車子", p:"ㄔㄜ ˙ㄗ"}] },
+        { char: "ㄕ", id: 17, examples: [{w:"獅子", p:"ㄕ ˙ㄗ"}, {w:"書本", p:"ㄕㄨ ㄅㄣˇ"}] },
+        { char: "ㄖ", id: 18, examples: [{w:"熱狗", p:"ㄖㄜˋ ㄍㄡˇ"}, {w:"日期", p:"ㄖˋ ㄑㄧˊ"}] },
+        { char: "ㄗ", id: 19, examples: [{w:"早安", p:"ㄗㄠˇ ㄢ"}, {w:"走路", p:"ㄗㄡˇ ㄌㄨˋ"}] },
+        { char: "ㄘ", id: 20, examples: [{w:"草莓", p:"ㄘㄠˇ ㄇㄟˊ"}, {w:"廁所", p:"ㄘㄜˋ ㄙㄨㄛˇ"}] },
+        { char: "ㄙ", id: 21, examples: [{w:"松鼠", p:"ㄙㄨㄥ ㄕㄨˇ"}, {w:"森林", p:"ㄙㄣ ㄌㄧㄣˊ"}] },
+        
+        // 介音 (MDN ID 是 35, 36, 37)
+        { char: "ㄧ", id: 35, examples: [{w:"衣服", p:"ㄧ ㄈㄨˊ"}, {w:"椅子", p:"ㄧˇ ˙ㄗ"}] },
+        { char: "ㄨ", id: 36, examples: [{w:"烏龜", p:"ㄨ ㄍㄨㄟ"}, {w:"娃娃", p:"ㄨㄚˊ ˙ㄨㄚ"}] },
+        { char: "ㄩ", id: 37, examples: [{w:"雨傘", p:"ㄩˇ ㄙㄢˇ"}, {w:"玉米", p:"ㄩˋ ㄇㄧˇ"}] },
+
+        // 韻母 (MDN ID 是 22-34)
+        { char: "ㄚ", id: 22, examples: [{w:"鴨子", p:"ㄧㄚ ˙ㄗ"}, {w:"牙齒", p:"ㄧㄚˊ ㄔˇ"}] },
+        { char: "ㄛ", id: 23, examples: [{w:"薄荷", p:"ㄅㄛˋ ˙ㄏㄜ"}, {w:"佛祖", p:"ㄈㄛˊ ㄗㄨˇ"}] },
+        { char: "ㄜ", id: 24, examples: [{w:"天鵝", p:"ㄊㄧㄢ ㄜˊ"}, {w:"可樂", p:"ㄎㄜˇ ㄌㄜˋ"}] },
+        { char: "ㄝ", id: 25, examples: [{w:"爺爺", p:"ㄧㄝˊ ˙ㄧㄝ"}, {w:"葉子", p:"ㄧㄝˋ ˙ㄗ"}] },
+        { char: "ㄞ", id: 26, examples: [{w:"奶奶", p:"ㄋㄞˇ ˙ㄋㄞ"}, {w:"海豚", p:"ㄏㄞˇ ㄊㄨㄣˊ"}] },
+        { char: "ㄟ", id: 27, examples: [{w:"妹妹", p:"ㄇㄟˋ ˙ㄇㄟ"}, {w:"杯子", p:"ㄅㄟ ˙ㄗ"}] },
+        { char: "ㄠ", id: 28, examples: [{w:"小貓", p:"ㄒㄧㄠˇ ㄇㄠ"}, {w:"草莓", p:"ㄘㄠˇ ㄇㄟˊ"}] },
+        { char: "ㄡ", id: 29, examples: [{w:"猴子", p:"ㄏㄡˊ ˙ㄗ"}, {w:"小狗", p:"ㄒㄧㄠˇ ㄍㄡˇ"}] },
+        { char: "ㄢ", id: 30, examples: [{w:"雞蛋", p:"ㄐㄧ ㄉㄢˋ"}, {w:"晚安", p:"ㄨㄢˇ ㄢ"}] },
+        { char: "ㄣ", id: 31, examples: [{w:"大門", p:"ㄉㄚˋ ㄇㄣˊ"}, {w:"森林", p:"ㄙㄣ ㄌㄧㄣˊ"}] },
+        { char: "ㄤ", id: 32, examples: [{w:"糖果", p:"ㄊㄤˊ ㄍㄨㄛˇ"}, {w:"太陽", p:"ㄊㄞˋ ㄧㄤˊ"}] },
+        { char: "ㄥ", id: 33, examples: [{w:"蜜蜂", p:"ㄇㄧˋ ㄈㄥ"}, {w:"電燈", p:"ㄉㄧㄢˋ ㄉㄥ"}] },
+        { char: "ㄦ", id: 34, examples: [{w:"耳朵", p:"ㄦˇ ㄉㄨㄛ"}, {w:"兒子", p:"ㄦˊ ˙ㄗ"}] }
     ];
 
     const colorPalette = ['#4A89A6', '#E59372', '#F08488', '#88B775', '#4AAABF', '#C784A2', '#4B99B6', '#D67B86'];
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const voiceStatus = document.getElementById('voice-status');
     
     const learningGrid = document.getElementById('learning-grid');
     const quizGrid = document.getElementById('quiz-grid');
@@ -351,30 +352,49 @@
         if (type === 'wrong') { playTone(150, 'sawtooth', 0.15); setTimeout(()=>playTone(120, 'sawtooth', 0.3), 150); }
     }
 
-    // --- 關鍵修改：調整語速 ---
-    function playVoice(text) {
+    // --- 核心語音播放 (雙模式) ---
+    function playBpm(item) {
+        const idStr = item.id.toString().padStart(2, '0');
+        // MDN Kids 網站路徑
+        const mdnUrl = `https://www.mdnkids.com/BoPoMo/audio/${idStr}.mp3`;
+        
+        const audio = new Audio(mdnUrl);
+        audio.playbackRate = 0.8; // 強制慢速
+        if (audio.preservesPitch !== undefined) audio.preservesPitch = true;
+
+        audio.onplay = () => {
+            voiceStatus.innerText = "🔊 國語日報原音";
+        };
+
+        audio.onerror = () => {
+            console.log("MDN 載入失敗，切換 Google TTS");
+            voiceStatus.innerText = "🔊 Google 智慧發音";
+            playGoogleTTS(item.char, 0.8);
+        };
+
+        audio.play().catch(e => {
+            playGoogleTTS(item.char, 0.8);
+        });
+    }
+
+    // 通用 TTS 播放器
+    function playGoogleTTS(text, speed = 1.0) {
         const url = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=zh-TW&q=${encodeURIComponent(text)}`;
         const audio = new Audio(url);
         
-        // 【關鍵】強制設定播放速度為 0.6 (變慢)
-        audio.playbackRate = 0.4;
-        // 如果瀏覽器支援，也開啟保留音高 (避免聲音變粗)
-        if (audio.preservesPitch !== undefined) {
-            audio.preservesPitch = true;
-        }
+        audio.playbackRate = speed; 
+        if (audio.preservesPitch !== undefined) audio.preservesPitch = true;
 
         audio.play().catch(e => {
-            console.log("切換系統語音");
             const synth = window.speechSynthesis;
             const u = new SpeechSynthesisUtterance(text);
             u.lang = "zh-TW";
-            // 備用方案也調慢
-            u.rate = 0.6; 
+            u.rate = speed; 
             synth.speak(u);
         });
     }
 
-    // --- 初始化 ---
+    // --- 初始化按鈕 ---
     zhuyinData.forEach((item, index) => {
         const bgColor = colorPalette[index % colorPalette.length];
         
@@ -383,7 +403,7 @@
         learningGrid.appendChild(btnL);
 
         const btnQ = createBtn(item, bgColor);
-        btnQ.onclick = () => checkAnswer(item.char, btnQ);
+        btnQ.onclick = () => checkAnswer(item, btnQ);
         quizGrid.appendChild(btnQ);
     });
 
@@ -395,7 +415,7 @@
         return btn;
     }
 
-    // --- 學習區 ---
+    // --- 學習區邏輯 ---
     function showLearningDetail(item, color) {
         const wordsHtml = item.examples.map(ex => {
             const chars = ex.w.split('');
@@ -405,7 +425,8 @@
                 const bpm = bopomofos[i] || ''; 
                 rubyHtml += `<ruby>${char}<rt>${bpm}</rt></ruby>`;
             });
-            return `<div class="example-tag" onclick="playVoice('${ex.w}'); event.stopPropagation();">
+            // 點擊詞彙 -> 慢速
+            return `<div class="example-tag" onclick="playGoogleTTS('${ex.w}', 0.8); event.stopPropagation();">
                         ${rubyHtml} <span class="sound-icon">🔊</span>
                     </div>`;
         }).join('');
@@ -414,10 +435,10 @@
             <div class="big-symbol" style="color:${color}">${item.char}</div>
             <div class="examples">${wordsHtml}</div>
         `;
-        playVoice(item.char);
+        playBpm(item);
     }
 
-    // --- 測驗區 ---
+    // --- 測驗區邏輯 ---
     function switchMode(mode) {
         playSound('click');
         document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
@@ -435,7 +456,7 @@
 
     function handleQuizControl() {
         if (isQuizActive) {
-            playVoice(currentQuizAnswer);
+            playBpm(currentQuizAnswer);
             quizControlBtn.style.transform = "scale(0.95)";
             setTimeout(() => quizControlBtn.style.transform = "scale(1)", 100);
         } else {
@@ -445,7 +466,7 @@
 
     function startNewQuestion() {
         const randomIndex = Math.floor(Math.random() * zhuyinData.length);
-        currentQuizAnswer = zhuyinData[randomIndex].char;
+        currentQuizAnswer = zhuyinData[randomIndex];
         isQuizActive = true;
         wrongCount = 0;
         
@@ -459,7 +480,7 @@
             btn.style.opacity = "1";
         });
         
-        playVoice(currentQuizAnswer);
+        playBpm(currentQuizAnswer);
     }
     
     function resetQuizUI() {
@@ -469,7 +490,7 @@
         quizStatus.innerText = "按下按鈕開始挑戰！";
     }
 
-    function checkAnswer(selectedChar, btnElement) {
+    function checkAnswer(selectedItem, btnElement) {
         if (!isQuizActive) {
             playSound('wrong'); 
             quizStatus.innerText = "👉 請先按「下一題」開始喔！";
@@ -477,7 +498,7 @@
             return;
         }
 
-        if (selectedChar === currentQuizAnswer) {
+        if (selectedItem.char === currentQuizAnswer.char) {
             playSound('correct');
             showFeedback(true);
             btnElement.classList.add('correct-pop');
@@ -487,7 +508,8 @@
             scoreVal.innerText = currentScore;
             
             quizStatus.innerText = "✨ 答對了！好棒！";
-            playVoice("答對了");
+            // 系統語音 -> 正常速度
+            playGoogleTTS("答對了", 1.0);
             endRound(); 
         } else {
             playSound('wrong');
@@ -497,10 +519,11 @@
             wrongCount++;
             if (wrongCount >= 3) {
                 showFeedback(false);
-                quizStatus.innerText = `正確答案是：${currentQuizAnswer}`;
-                playVoice(`正確答案是${currentQuizAnswer}`);
+                quizStatus.innerText = `正確答案是：${currentQuizAnswer.char}`;
+                // 系統語音 -> 正常速度
+                playGoogleTTS(`正確答案是${currentQuizAnswer.char}`, 1.0);
                 document.querySelectorAll('#quiz-grid .symbol-btn').forEach(b => {
-                    if(b.innerText === currentQuizAnswer) b.classList.add('correct-pop');
+                    if(b.innerText === currentQuizAnswer.char) b.classList.add('correct-pop');
                 });
                 currentScore = 0;
                 scoreVal.innerText = 0;
@@ -520,7 +543,6 @@
     function showFeedback(isCorrect) {
         feedbackOverlay.innerText = isCorrect ? "⭕" : "❌";
         feedbackOverlay.style.color = isCorrect ? "var(--correct)" : "var(--wrong)";
-        
         feedbackOverlay.classList.add('show');
         setTimeout(() => feedbackOverlay.classList.remove('show'), 800);
     }
