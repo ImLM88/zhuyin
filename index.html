@@ -10,73 +10,119 @@
             --text: #555;
             --correct: #6BCB77;
             --wrong: #FF6B6B;
+            --primary-color: #4A89A6;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             font-family: "Microsoft JhengHei", "Rounded Mplus 1c", sans-serif;
             background-color: var(--bg);
-            background-image: linear-gradient(180deg, #9FA5D5 0%, #E8F5C8 100%);
+            background-image: linear-gradient(180deg, #E0F7FA 0%, #FFF3E0 100%);
             background-attachment: fixed;
             color: var(--text);
             margin: 0;
             padding: 10px;
             height: 100vh;
-            box-sizing: border-box;
             display: flex;
             flex-direction: column;
             align-items: center;
             overflow: hidden; 
             user-select: none;
+            position: relative;
+        }
+
+        /* --- 標題區塊 (彩虹 + 標題 + 花朵) --- */
+        header {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+            height: 40px;
+            gap: 10px; /* 圖示與文字間距 */
         }
 
         h1 {
-            color: #fff;
+            color: #4A89A6;
             font-size: 1.5rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-            margin: 0 0 5px 0;
+            text-shadow: 2px 2px 0px #fff;
+            margin: 0;
             font-weight: 900;
-            flex-shrink: 0;
+            white-space: nowrap;
         }
 
+        .header-icon {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            filter: drop-shadow(1px 2px 2px rgba(0,0,0,0.1));
+        }
+
+        /* 語音標示 (右上角固定) */
         .voice-control {
-            font-size: 0.8rem;
-            color: #fff;
-            background: rgba(0,0,0,0.2);
-            padding: 2px 10px;
-            border-radius: 20px;
-            margin-bottom: 5px;
-            flex-shrink: 0;
+            position: absolute;
+            right: 0;
+            top: -5px;
+            font-size: 0.65rem;
+            color: #666;
+            background: rgba(255,255,255,0.8);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            z-index: 20;
         }
 
+        /* 導航列 (V21 扁平風格) */
         .nav-container {
-            background: rgba(255,255,255,0.9);
-            padding: 5px;
-            border-radius: 50px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.08); /* 淺灰軌道 */
+            padding: 4px;
+            border-radius: 12px;
+            margin-bottom: 8px;
             display: flex;
-            gap: 10px;
+            width: 100%;
+            max-width: 600px;
             flex-shrink: 0;
         }
 
         .nav-btn {
-            padding: 8px 20px;
+            flex: 1;
+            padding: 8px 0;
             font-size: 1rem;
             border: none;
-            border-radius: 40px;
+            border-radius: 8px;
             cursor: pointer;
             background-color: transparent;
-            color: #888;
-            font-weight: bold;
-            transition: all 0.3s;
+            color: #666; 
+            font-weight: 700;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .nav-icon-img {
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
+            vertical-align: middle;
         }
 
+        /* 選中狀態：白色卡片浮起 */
         .nav-btn.active {
-            background-color: #4A89A6;
-            color: white;
-            box-shadow: 0 2px 5px rgba(74, 137, 166, 0.3);
+            background-color: #fff;
+            color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
+        /* 主容器 */
         .container {
             width: 100%;
             max-width: 600px;
@@ -87,8 +133,7 @@
             flex: 1;
             flex-direction: column;
             overflow: hidden;
-            padding: 15px;
-            box-sizing: border-box;
+            padding: 12px;
         }
 
         .container.active {
@@ -109,18 +154,76 @@
             justify-content: center;
         }
 
+        /* 顯示區 */
         .display-area {
             text-align: center;
             background: #fff;
-            border-radius: 15px;
+            border-radius: 16px;
             border: 2px solid #eee;
             padding: 10px;
-            height: 180px;
+            min-height: 180px; 
             display: flex;
-            flex-direction: column;
+            flex-direction: row; 
             align-items: center;
             justify-content: center;
+            gap: 15px;
         }
+
+        .big-symbol {
+            font-size: 6rem;
+            font-weight: 900;
+            margin: 0;
+            line-height: 1;
+            flex-shrink: 0;
+            width: 40%;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        .examples {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            justify-content: center;
+            flex-grow: 1;
+            width: 60%;
+        }
+
+        /* 名詞卡片 (等寬設計) */
+        .example-tag {
+            background-color: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            padding: 6px 0;
+            border-radius: 12px;
+            font-size: 1.3rem;
+            color: #555;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%; /* 強制等寬 */
+            transition: all 0.1s;
+            position: relative;
+        }
+        .example-tag:active { background-color: #e3f2fd; transform: scale(0.98); }
+
+        ruby { 
+            display: inline-flex; 
+            flex-direction: column; 
+            align-items: center; 
+            margin: 0 2px; 
+            vertical-align: middle; 
+            line-height: 1.1;
+        }
+        
+        rt { 
+            font-size: 0.8em; 
+            color: #777; 
+            margin-bottom: -2px; 
+            font-weight: normal;
+        }
+        
+        .sound-icon { font-size: 1rem; margin-left: 8px; opacity: 0.4; }
 
         .quiz-header {
             display: flex;
@@ -132,7 +235,6 @@
             margin-bottom: 10px;
             font-size: 0.9rem;
         }
-        
         .score-board { font-weight: bold; color: #4A89A6; }
 
         .grid-wrapper {
@@ -143,10 +245,15 @@
 
         .symbol-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); 
-            gap: 8px;
-            padding-bottom: 5px;
-            transition: opacity 0.3s; 
+            grid-template-columns: repeat(5, 1fr); /* 預設 5 列 */
+            gap: 6px;
+            padding-bottom: 20px;
+            transition: opacity 0.3s;
+        }
+
+        /* 手機版改 6 列以節省空間 */
+        @media (max-width: 400px) {
+            .symbol-grid { grid-template-columns: repeat(6, 1fr); }
         }
 
         .symbol-grid.disabled {
@@ -159,7 +266,7 @@
             aspect-ratio: 1;
             border: none;
             border-radius: 8px;
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             font-family: "Dela Gothic One", "Microsoft JhengHei", sans-serif; 
             cursor: pointer;
             display: flex;
@@ -169,7 +276,6 @@
             text-shadow: 1px 1px 1px rgba(0,0,0,0.1);
             position: relative;
         }
-        
         .symbol-btn:active { transform: scale(0.95); }
 
         @keyframes raindrop-jump-slow {
@@ -178,61 +284,13 @@
             60% { transform: scale(0.95) translateY(2px); }
             100% { transform: scale(1) translateY(0); }
         }
+        .jump-anim { animation: raindrop-jump-slow 1.2s ease-in-out; }
 
-        .jump-anim {
-            animation: raindrop-jump-slow 1.2s ease-in-out; 
-        }
-
-        .big-symbol {
-            font-size: 5rem;
-            font-weight: 900;
-            margin: 0;
-            line-height: 1;
-        }
-
-        .examples {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .example-tag {
-            background-color: #f8f9fa;
-            border: 2px solid #e0e0e0;
-            padding: 5px 12px;
-            border-radius: 10px;
-            font-size: 1.3rem; 
-            color: #555;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            margin-bottom: 5px;
-        }
-        .example-tag:active { background-color: #e3f2fd; }
-
-        ruby { 
-            display: inline-flex; 
-            flex-direction: column; 
-            align-items: center; 
-            margin: 0 2px; 
-            vertical-align: middle; 
-        }
-        
-        rt { 
-            font-size: 0.8em;
-            color: #666; 
-            margin-bottom: -5px; 
-            font-weight: normal;
-        }
-        
-        .sound-icon { font-size: 0.8rem; margin-left: 5px; opacity: 0.5; }
-
+        /* 下一題按鈕 */
         .play-quiz-btn {
             background-color: #4A89A6;
             color: white;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             padding: 12px 0;
             width: 100%;
             border: none;
@@ -242,6 +300,10 @@
             font-weight: bold;
             transition: all 0.2s;
             position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px; /* 圖示與文字間距 */
         }
         .play-quiz-btn:active { transform: translateY(4px); box-shadow: none; }
         .play-quiz-btn.next-mode { 
@@ -251,23 +313,31 @@
             z-index: 1001; 
         }
         
+        .btn-icon-img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        }
+        
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.02); }
             100% { transform: scale(1); }
         }
 
-        /* --- 答題回饋遮罩 --- */
+        /* --- 答題回饋遮罩 (防遮擋版) --- */
         .feedback-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); /* 背景深一點，凸顯內容 */
+            background: rgba(0,0,0,0.7);
             display: flex; 
             justify-content: center; 
-            align-items: center;
+            align-items: flex-start; /* 靠上對齊 */
             z-index: 1000; 
             pointer-events: none; 
             opacity: 0;
             transition: opacity 0.3s;
+            /* 關鍵：使用 padding 推開頂部，避開按鈕 */
+            padding-top: 250px; 
         }
         .feedback-overlay.show { opacity: 1; pointer-events: auto; }
 
@@ -288,7 +358,6 @@
             100% { transform: scale(1); }
         }
 
-        /* 答對的大注音 (可點擊) */
         .feedback-char {
             font-size: 8rem;
             font-weight: 900;
@@ -303,13 +372,11 @@
             text-shadow: 2px 2px 5px rgba(0,0,0,0.2);
             font-family: "Dela Gothic One", "Microsoft JhengHei", sans-serif; 
             animation: celebration-pop 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            cursor: pointer; /* 顯示手手 */
-            transition: transform 0.1s;
+            cursor: pointer;
+            position: relative;
+            z-index: 5;
         }
-        
-        .feedback-char:active {
-            transform: scale(0.9);
-        }
+        .feedback-char:active { transform: scale(0.9); }
 
         .feedback-gif {
             width: 100px;
@@ -319,35 +386,40 @@
             filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
             margin-bottom: -20px;
             animation: slideDown 0.5s ease-out 0.2s both;
+            position: relative;
         }
         @keyframes slideDown {
             from { transform: translateY(-50px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
 
-        /* V13 新增：回饋區的詞彙列表 */
         .feedback-words-area {
             display: flex;
+            flex-direction: column;
             gap: 10px;
             justify-content: center;
-            flex-wrap: wrap;
+            align-items: center;
+            width: 100%;
             margin-top: 25px;
-            animation: fadeIn 0.5s ease-out 0.5s both; /* 延遲顯示 */
+            animation: fadeIn 0.5s ease-out 0.5s both;
         }
         
-        /* 覆寫 tag 樣式讓它在深色背景更明顯 */
+        /* 回饋區的名詞卡片：等寬 */
         .feedback-word-tag {
             background-color: white;
             border: 3px solid #fff;
-            padding: 8px 15px;
+            padding: 8px 0;
             border-radius: 15px;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             color: #444;
             cursor: pointer;
-            display: inline-flex;
+            display: flex;
+            justify-content: center;
             align-items: center;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
             transition: all 0.2s;
+            width: 100%;
+            max-width: 280px;
         }
         .feedback-word-tag:active { transform: scale(0.95); background-color: #eee; }
 
@@ -356,6 +428,7 @@
             color: var(--wrong);
             text-shadow: 0 5px 15px rgba(0,0,0,0.3);
             font-weight: bold;
+            margin-top: 100px;
         }
 
         .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; filter: brightness(0.7); }
@@ -365,16 +438,40 @@
         .particle { position: fixed; pointer-events: none; animation: fall 1s linear forwards; z-index: 1002; }
         @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
 
+        /* 手機版面適配 */
+        @media (max-width: 600px) {
+            #learning-display {
+                flex-direction: row;
+                gap: 10px;
+                padding: 10px 5px;
+            }
+            .feedback-overlay {
+                padding-top: 280px; /* 手機版加大推擠 */
+            }
+        }
+
     </style>
 </head>
 <body>
 
-    <h1>🌈 注音符號大冒險</h1>
-    <div class="voice-control" id="voice-status">🔊 國語日報原音</div>
+    <header>
+        <img src="https://cdn-icons-png.flaticon.com/128/458/458842.png" class="header-icon" alt="Rainbow">
+        <h1>注音符號大冒險</h1>
+        <img src="https://cdn-icons-png.flaticon.com/128/4509/4509748.png" class="header-icon" alt="Flower">
+        
+        <div class="voice-control" id="voice-status">🔊 國語日報原音</div>
+    </header>
 
     <div class="nav-container">
-        <button class="nav-btn active" onclick="switchMode('learning')">📖 學習區</button>
-        <button class="nav-btn" onclick="switchMode('quiz')">🎮 挑戰區</button>
+        <button class="nav-btn active" onclick="switchMode('learning')">
+            <img src="https://cdn-icons-png.flaticon.com/128/10773/10773833.png" class="nav-icon-img" alt="Folder">
+            學習區
+        </button>
+        <button class="nav-btn" onclick="switchMode('quiz')">
+            <img src="https://cdn-icons-png.flaticon.com/128/13983/13983889.png" class="nav-icon-img" alt="Check">
+            挑戰區
+            <img src="https://cdn-icons-png.flaticon.com/128/9068/9068678.png" class="nav-icon-img" alt="Close">
+        </button>
     </div>
 
     <div id="learning-section" class="container active">
@@ -394,7 +491,10 @@
                 <div class="score-board">🏆 連續答對：<span id="score-val">0</span> 題</div>
                 <div id="quiz-status" style="color:#666;">準備開始</div>
             </div>
-            <button id="quiz-control-btn" class="play-quiz-btn" onclick="handleQuizControl()">🔊 播放題目聲音</button>
+            <button id="quiz-control-btn" class="play-quiz-btn" onclick="handleQuizControl()">
+                <img src="https://cdn-icons-png.flaticon.com/128/3567/3567886.png" class="btn-icon-img" style="display:none;" id="next-icon"> 
+                <span id="quiz-btn-text">🔊 播放題目聲音</span>
+            </button>
         </div>
         <div class="grid-wrapper">
             <div class="symbol-grid disabled" id="quiz-grid"></div>
@@ -447,7 +547,17 @@
         { char: "ㄦ", id: 34, examples: [{w:"耳朵", p:"ㄦˇ ㄉㄨㄛ"}, {w:"兒子", p:"ㄦˊ ˙ㄗ"}, {w:"兒童", p:"ㄦˊ ㄊㄨㄥˊ"}] }
     ];
 
-    const colorPalette = ['#4A89A6', '#E59372', '#F08488', '#88B775', '#4AAABF', '#C784A2', '#4B99B6', '#D67B86'];
+    // V27: 花朵色系 (7色循環)
+    const colorPalette = [
+        '#F06292', // 花瓣粉
+        '#81C784', // 葉子綠
+        '#FFB74D', // 橘黃
+        '#4DB6AC', // 深青
+        '#E57373', // 深粉紅
+        '#AED581', // 嫩綠
+        '#FFD54F'  // 亮黃
+    ];
+
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const voiceStatus = document.getElementById('voice-status');
     
@@ -458,6 +568,8 @@
     const quizStatus = document.getElementById('quiz-status');
     const scoreVal = document.getElementById('score-val');
     const quizControlBtn = document.getElementById('quiz-control-btn');
+    const nextIcon = document.getElementById('next-icon');
+    const quizBtnText = document.getElementById('quiz-btn-text');
 
     let currentScore = 0;
     let currentQuizAnswer = null;
@@ -487,23 +599,22 @@
         if (type === 'wrong') { playTone(150, 'sawtooth', 0.15); setTimeout(()=>playTone(120, 'sawtooth', 0.3), 150); }
     }
 
-    // --- 核心語音播放 (ID 用於注音發音, text 用於詞彙/系統音) ---
-    // speed 預設 1.0
-    function playBpm(item, speed = 1.0) {
+    // --- 核心語音播放 ---
+    function playBpm(item) {
         const idStr = item.id.toString().padStart(2, '0');
         const mdnUrl = `https://www.mdnkids.com/BoPoMo/audio/${idStr}.mp3`;
         
         const audio = new Audio(mdnUrl);
-        audio.playbackRate = speed; 
+        audio.playbackRate = 1.0; 
         if (audio.preservesPitch !== undefined) audio.preservesPitch = true;
 
         audio.onplay = () => { voiceStatus.innerText = "🔊 國語日報原音"; };
         audio.onerror = () => {
             console.log("MDN 載入失敗，切換 Google TTS");
             voiceStatus.innerText = "🔊 Google 智慧發音";
-            playGoogleTTS(item.char, speed);
+            playGoogleTTS(item.char, 1.0);
         };
-        audio.play().catch(e => { playGoogleTTS(item.char, speed); });
+        audio.play().catch(e => { playGoogleTTS(item.char, 1.0); });
     }
 
     function playGoogleTTS(text, speed = 1.0) {
@@ -552,7 +663,6 @@
         void btn.offsetWidth; 
         btn.classList.add('jump-anim');
         
-        // 隨機延遲 1000~3500ms
         const nextDelay = 1000 + Math.random() * 2500;
         const timeoutId = setTimeout(spawnRaindrop, nextDelay);
         rainTimeouts.push(timeoutId);
@@ -578,16 +688,7 @@
 
     // --- 學習區邏輯 ---
     function showLearningDetail(item, color) {
-        const wordsHtml = generateWordsHtml(item);
-        learningDisplay.innerHTML = `
-            <div class="big-symbol" style="color:${color}">${item.char}</div>
-            <div class="examples">${wordsHtml}</div>
-        `;
-        playBpm(item);
-    }
-
-    function generateWordsHtml(item) {
-        return item.examples.map(ex => {
+        const wordsHtml = item.examples.map(ex => {
             const chars = ex.w.split('');
             const bopomofos = ex.p.split(' ');
             let rubyHtml = '';
@@ -595,11 +696,16 @@
                 const bpm = bopomofos[i] || ''; 
                 rubyHtml += `<ruby>${char}<rt>${bpm}</rt></ruby>`;
             });
-            // 學習區詞彙發音：正常語速
             return `<div class="example-tag" onclick="playGoogleTTS('${ex.w}', 1.0); event.stopPropagation();">
                         ${rubyHtml} <span class="sound-icon">🔊</span>
                     </div>`;
         }).join('');
+
+        learningDisplay.innerHTML = `
+            <div class="big-symbol" style="color:${color}">${item.char}</div>
+            <div class="examples">${wordsHtml}</div>
+        `;
+        playBpm(item);
     }
 
     // --- 測驗區邏輯 ---
@@ -641,7 +747,10 @@
         
         quizStatus.innerText = "👂 請仔細聽，選出正確的注音";
         quizStatus.style.color = "#4A89A6";
-        quizControlBtn.innerText = "🔊 重聽一次";
+        
+        // 變回「重聽」狀態
+        quizBtnText.innerText = "🔊 重聽一次";
+        nextIcon.style.display = "none";
         quizControlBtn.classList.remove('next-mode');
         
         quizGrid.classList.remove('disabled');
@@ -656,7 +765,8 @@
     
     function resetQuizUI() {
         isQuizActive = false;
-        quizControlBtn.innerText = "🔊 開始出題";
+        quizBtnText.innerText = "🔊 開始出題";
+        nextIcon.style.display = "none";
         quizControlBtn.classList.remove('next-mode');
         quizStatus.innerText = "按下按鈕開始挑戰！";
         quizGrid.classList.add('disabled');
@@ -690,7 +800,6 @@
             wrongCount++;
             if (wrongCount >= 3) {
                 // 3次錯 -> 揭曉
-                // 找出正確的 item 和 color
                 const correctIndex = zhuyinData.indexOf(currentQuizAnswer);
                 const correctColor = colorPalette[correctIndex % colorPalette.length];
 
@@ -715,20 +824,18 @@
 
     function endRound() {
         isQuizActive = false;
-        quizControlBtn.innerText = "➡️ 下一題";
+        // 顯示下一題按鈕與 Icon
+        quizBtnText.innerText = "下一題";
+        nextIcon.style.display = "inline";
         quizControlBtn.classList.add('next-mode');
         quizGrid.classList.add('disabled');
     }
 
-    // --- V13 更新：回饋顯示 (支援點擊播放 + 詞彙) ---
     function showFeedback(mode, item, color = "#4A89A6") {
         if (mode === 'correct' || mode === 'reveal') {
             const gifUrl = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHRod2U4bHd4OXhsdG5zYnI4NDA5cGtmeG4xd2EwOG9lMmtmbTludyZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/D0jidt0aW8DD2YZkAB/giphy.gif";
             const gifHtml = (mode === 'correct') ? `<img src="${gifUrl}" class="feedback-gif" alt="Good Job!">` : '';
             
-            // 產生詞彙卡片 (V13: 增加詞彙回饋區的樣式)
-            // 為了不與學習區的 ID 衝突，這裡只產生 HTML 結構
-            // 注意: 我們在這裡生成新的 HTML，並且加上 onclick 事件
             const wordsHtml = item.examples.map(ex => {
                 const chars = ex.w.split('');
                 const bopomofos = ex.p.split(' ');
@@ -737,15 +844,11 @@
                     const bpm = bopomofos[i] || ''; 
                     rubyHtml += `<ruby>${char}<rt>${bpm}</rt></ruby>`;
                 });
-                // 回饋區的詞彙點擊發音
                 return `<div class="feedback-word-tag" onclick="playGoogleTTS('${ex.w}', 1.0); event.stopPropagation();">
                             ${rubyHtml} <span class="sound-icon">🔊</span>
                         </div>`;
             }).join('');
 
-            // V13: 大注音加上 onclick 事件
-            // 注意: 為了傳遞物件，我們這裡直接用閉包概念可能比較複雜，直接組字串
-            // 使用 playBpm 並手動建構一個簡單的 item 物件傳進去
             const charClickAttr = `onclick="playBpm({id:${item.id}, char:'${item.char}'}); event.stopPropagation();"`;
 
             feedbackOverlay.innerHTML = `
@@ -761,7 +864,6 @@
             `;
             feedbackOverlay.classList.add('show');
         } else {
-            // 答錯
             feedbackOverlay.innerHTML = `<div class="feedback-wrong-text">❌</div>`;
             feedbackOverlay.classList.add('show');
             setTimeout(() => feedbackOverlay.classList.remove('show'), 800);
