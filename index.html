@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>注音符號大冒險 (國語日報修正版)</title>
+    <title>注音符號大冒險 (V13 互動回饋版)</title>
     <style>
         :root {
             --bg: #FDF6E3;
@@ -146,6 +146,13 @@
             grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); 
             gap: 8px;
             padding-bottom: 5px;
+            transition: opacity 0.3s; 
+        }
+
+        .symbol-grid.disabled {
+            pointer-events: none;
+            opacity: 0.4;
+            filter: grayscale(0.5);
         }
 
         .symbol-btn {
@@ -162,8 +169,19 @@
             text-shadow: 1px 1px 1px rgba(0,0,0,0.1);
             position: relative;
         }
-
+        
         .symbol-btn:active { transform: scale(0.95); }
+
+        @keyframes raindrop-jump-slow {
+            0% { transform: scale(1) translateY(0); }
+            30% { transform: scale(1.1) translateY(-10px); }
+            60% { transform: scale(0.95) translateY(2px); }
+            100% { transform: scale(1) translateY(0); }
+        }
+
+        .jump-anim {
+            animation: raindrop-jump-slow 1.2s ease-in-out; 
+        }
 
         .big-symbol {
             font-size: 5rem;
@@ -177,6 +195,7 @@
             gap: 8px;
             margin-top: 10px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .example-tag {
@@ -184,16 +203,30 @@
             border: 2px solid #e0e0e0;
             padding: 5px 12px;
             border-radius: 10px;
-            font-size: 1.2rem;
+            font-size: 1.3rem; 
             color: #555;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
+            margin-bottom: 5px;
         }
         .example-tag:active { background-color: #e3f2fd; }
 
-        ruby { display: inline-flex; flex-direction: column; align-items: center; margin: 0 1px; vertical-align: middle; }
-        rt { font-size: 0.5em; color: #888; margin-bottom: -3px; }
+        ruby { 
+            display: inline-flex; 
+            flex-direction: column; 
+            align-items: center; 
+            margin: 0 2px; 
+            vertical-align: middle; 
+        }
+        
+        rt { 
+            font-size: 0.8em;
+            color: #666; 
+            margin-bottom: -5px; 
+            font-weight: normal;
+        }
+        
         .sound-icon { font-size: 0.8rem; margin-left: 5px; opacity: 0.5; }
 
         .play-quiz-btn {
@@ -207,26 +240,129 @@
             cursor: pointer;
             box-shadow: 0 4px 0 #366B84;
             font-weight: bold;
+            transition: all 0.2s;
+            position: relative;
         }
         .play-quiz-btn:active { transform: translateY(4px); box-shadow: none; }
-        .play-quiz-btn.next-mode { background-color: #E59372; box-shadow: 0 4px 0 #c27658; }
+        .play-quiz-btn.next-mode { 
+            background-color: #E59372; 
+            box-shadow: 0 4px 0 #c27658; 
+            animation: pulse 1s infinite;
+            z-index: 1001; 
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
 
+        /* --- 答題回饋遮罩 --- */
         .feedback-overlay {
-            position: fixed; top: 50%; left: 50%; 
-            transform: translate(-50%, -50%) scale(0);
-            z-index: 1000; pointer-events: none; 
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            font-size: 10rem; 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); /* 背景深一點，凸顯內容 */
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            z-index: 1000; 
+            pointer-events: none; 
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .feedback-overlay.show { opacity: 1; pointer-events: auto; }
+
+        .feedback-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 0 20px;
+        }
+
+        @keyframes celebration-pop {
+            0% { transform: scale(0); opacity: 0;}
+            50% { transform: scale(1.2); opacity: 1;}
+            70% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+
+        /* 答對的大注音 (可點擊) */
+        .feedback-char {
+            font-size: 8rem;
+            font-weight: 900;
+            color: white;
+            width: 140px;
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            font-family: "Dela Gothic One", "Microsoft JhengHei", sans-serif; 
+            animation: celebration-pop 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            cursor: pointer; /* 顯示手手 */
+            transition: transform 0.1s;
+        }
+        
+        .feedback-char:active {
+            transform: scale(0.9);
+        }
+
+        .feedback-gif {
+            width: 100px;
+            height: auto;
+            pointer-events: none;
+            z-index: 10;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
+            margin-bottom: -20px;
+            animation: slideDown 0.5s ease-out 0.2s both;
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* V13 新增：回饋區的詞彙列表 */
+        .feedback-words-area {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 25px;
+            animation: fadeIn 0.5s ease-out 0.5s both; /* 延遲顯示 */
+        }
+        
+        /* 覆寫 tag 樣式讓它在深色背景更明顯 */
+        .feedback-word-tag {
+            background-color: white;
+            border: 3px solid #fff;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 1.4rem;
+            color: #444;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+        .feedback-word-tag:active { transform: scale(0.95); background-color: #eee; }
+
+        .feedback-wrong-text {
+            font-size: 10rem;
+            color: var(--wrong);
             text-shadow: 0 5px 15px rgba(0,0,0,0.3);
             font-weight: bold;
         }
-        .feedback-overlay.show { transform: translate(-50%, -50%) scale(1); }
 
         .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; filter: brightness(0.7); }
         @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
         .correct-pop { animation: pop 0.4s; filter: brightness(1.2); box-shadow: 0 0 10px gold; z-index: 100; }
         @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
-        .particle { position: fixed; pointer-events: none; animation: fall 1s linear forwards; z-index: 999; }
+        .particle { position: fixed; pointer-events: none; animation: fall 1s linear forwards; z-index: 1002; }
         @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
 
     </style>
@@ -234,7 +370,7 @@
 <body>
 
     <h1>🌈 注音符號大冒險</h1>
-    <div class="voice-control" id="voice-status">🔊 國語日報原音修正版</div>
+    <div class="voice-control" id="voice-status">🔊 國語日報原音</div>
 
     <div class="nav-container">
         <button class="nav-btn active" onclick="switchMode('learning')">📖 學習區</button>
@@ -261,58 +397,54 @@
             <button id="quiz-control-btn" class="play-quiz-btn" onclick="handleQuizControl()">🔊 播放題目聲音</button>
         </div>
         <div class="grid-wrapper">
-            <div class="symbol-grid" id="quiz-grid"></div>
+            <div class="symbol-grid disabled" id="quiz-grid"></div>
         </div>
     </div>
 
     <div id="feedback" class="feedback-overlay"></div>
 
 <script>
-    // --- 1. 資料庫 (ID 已針對 MDN 網站順序進行修正) ---
-    // MDN 順序：1-21(聲母), 22-34(韻母 ㄚ~ㄦ), 35-37(介音 ㄧㄨㄩ)
+    // --- 1. 資料庫 ---
     const zhuyinData = [
-        // 聲母 (1-21)
-        { char: "ㄅ", id: 1, examples: [{w:"爸爸", p:"ㄅㄚˋ ˙ㄅㄚ"}, {w:"包子", p:"ㄅㄠ ˙ㄗ"}] },
-        { char: "ㄆ", id: 2, examples: [{w:"蘋果", p:"ㄆㄧㄥˊ ㄍㄨㄛˇ"}, {w:"朋友", p:"ㄆㄥˊ ㄧㄡˇ"}] },
-        { char: "ㄇ", id: 3, examples: [{w:"媽媽", p:"ㄇㄚ ˙ㄇㄚ"}, {w:"麵包", p:"ㄇㄧㄢˋ ㄅㄠ"}] },
-        { char: "ㄈ", id: 4, examples: [{w:"飛機", p:"ㄈㄟ ㄐㄧ"}, {w:"蜜蜂", p:"ㄇㄧˋ ㄈㄥ"}] },
-        { char: "ㄉ", id: 5, examples: [{w:"弟弟", p:"ㄉㄧˋ ˙ㄉㄧ"}, {w:"蛋糕", p:"ㄉㄢˋ ㄍㄠ"}] },
-        { char: "ㄊ", id: 6, examples: [{w:"兔子", p:"ㄊㄨˋ ˙ㄗ"}, {w:"太陽", p:"ㄊㄞˋ ㄧㄤˊ"}] },
-        { char: "ㄋ", id: 7, examples: [{w:"牛奶", p:"ㄋㄧㄡˊ ㄋㄞˇ"}, {w:"奶奶", p:"ㄋㄞˇ ˙ㄋㄞ"}] },
-        { char: "ㄌ", id: 8, examples: [{w:"老虎", p:"ㄌㄠˇ ㄏㄨˇ"}, {w:"快樂", p:"ㄎㄨㄞˋ ㄌㄜˋ"}] },
-        { char: "ㄍ", id: 9, examples: [{w:"哥哥", p:"ㄍㄜ ˙ㄍㄜ"}, {w:"蘋果", p:"ㄆㄧㄥˊ ㄍㄨㄛˇ"}] },
-        { char: "ㄎ", id: 10, examples: [{w:"恐龍", p:"ㄎㄨㄥˇ ㄌㄨㄥˊ"}, {w:"卡片", p:"ㄎㄚˇ ㄆㄧㄢˋ"}] },
-        { char: "ㄏ", id: 11, examples: [{w:"花朵", p:"ㄏㄨㄚ ㄉㄨㄛˇ"}, {w:"猴子", p:"ㄏㄡˊ ˙ㄗ"}] },
-        { char: "ㄐ", id: 12, examples: [{w:"雞蛋", p:"ㄐㄧ ㄉㄢˋ"}, {w:"積木", p:"ㄐㄧ ㄇㄨˋ"}] },
-        { char: "ㄑ", id: 13, examples: [{w:"氣球", p:"ㄑㄧˋ ㄑㄧㄡˊ"}, {w:"企鵝", p:"ㄑㄧˋ ㄜˊ"}] },
-        { char: "ㄒ", id: 14, examples: [{w:"西瓜", p:"ㄒㄧ ㄍㄨㄚ"}, {w:"星星", p:"ㄒㄧㄥ ㄒㄧㄥ"}] },
-        { char: "ㄓ", id: 15, examples: [{w:"蜘蛛", p:"ㄓ ㄓㄨ"}, {w:"桌子", p:"ㄓㄨㄛ ˙ㄗ"}] },
-        { char: "ㄔ", id: 16, examples: [{w:"吃飯", p:"ㄔ ㄈㄢˋ"}, {w:"車子", p:"ㄔㄜ ˙ㄗ"}] },
-        { char: "ㄕ", id: 17, examples: [{w:"獅子", p:"ㄕ ˙ㄗ"}, {w:"書本", p:"ㄕㄨ ㄅㄣˇ"}] },
-        { char: "ㄖ", id: 18, examples: [{w:"熱狗", p:"ㄖㄜˋ ㄍㄡˇ"}, {w:"日期", p:"ㄖˋ ㄑㄧˊ"}] },
-        { char: "ㄗ", id: 19, examples: [{w:"早安", p:"ㄗㄠˇ ㄢ"}, {w:"走路", p:"ㄗㄡˇ ㄌㄨˋ"}] },
-        { char: "ㄘ", id: 20, examples: [{w:"草莓", p:"ㄘㄠˇ ㄇㄟˊ"}, {w:"廁所", p:"ㄘㄜˋ ㄙㄨㄛˇ"}] },
-        { char: "ㄙ", id: 21, examples: [{w:"松鼠", p:"ㄙㄨㄥ ㄕㄨˇ"}, {w:"森林", p:"ㄙㄣ ㄌㄧㄣˊ"}] },
-        
-        // 介音 (MDN ID 是 35, 36, 37)
-        { char: "ㄧ", id: 35, examples: [{w:"衣服", p:"ㄧ ㄈㄨˊ"}, {w:"椅子", p:"ㄧˇ ˙ㄗ"}] },
-        { char: "ㄨ", id: 36, examples: [{w:"烏龜", p:"ㄨ ㄍㄨㄟ"}, {w:"娃娃", p:"ㄨㄚˊ ˙ㄨㄚ"}] },
-        { char: "ㄩ", id: 37, examples: [{w:"雨傘", p:"ㄩˇ ㄙㄢˇ"}, {w:"玉米", p:"ㄩˋ ㄇㄧˇ"}] },
-
-        // 韻母 (MDN ID 是 22-34)
-        { char: "ㄚ", id: 22, examples: [{w:"鴨子", p:"ㄧㄚ ˙ㄗ"}, {w:"牙齒", p:"ㄧㄚˊ ㄔˇ"}] },
-        { char: "ㄛ", id: 23, examples: [{w:"薄荷", p:"ㄅㄛˋ ˙ㄏㄜ"}, {w:"佛祖", p:"ㄈㄛˊ ㄗㄨˇ"}] },
-        { char: "ㄜ", id: 24, examples: [{w:"天鵝", p:"ㄊㄧㄢ ㄜˊ"}, {w:"可樂", p:"ㄎㄜˇ ㄌㄜˋ"}] },
-        { char: "ㄝ", id: 25, examples: [{w:"爺爺", p:"ㄧㄝˊ ˙ㄧㄝ"}, {w:"葉子", p:"ㄧㄝˋ ˙ㄗ"}] },
-        { char: "ㄞ", id: 26, examples: [{w:"奶奶", p:"ㄋㄞˇ ˙ㄋㄞ"}, {w:"海豚", p:"ㄏㄞˇ ㄊㄨㄣˊ"}] },
-        { char: "ㄟ", id: 27, examples: [{w:"妹妹", p:"ㄇㄟˋ ˙ㄇㄟ"}, {w:"杯子", p:"ㄅㄟ ˙ㄗ"}] },
-        { char: "ㄠ", id: 28, examples: [{w:"小貓", p:"ㄒㄧㄠˇ ㄇㄠ"}, {w:"草莓", p:"ㄘㄠˇ ㄇㄟˊ"}] },
-        { char: "ㄡ", id: 29, examples: [{w:"猴子", p:"ㄏㄡˊ ˙ㄗ"}, {w:"小狗", p:"ㄒㄧㄠˇ ㄍㄡˇ"}] },
-        { char: "ㄢ", id: 30, examples: [{w:"雞蛋", p:"ㄐㄧ ㄉㄢˋ"}, {w:"晚安", p:"ㄨㄢˇ ㄢ"}] },
-        { char: "ㄣ", id: 31, examples: [{w:"大門", p:"ㄉㄚˋ ㄇㄣˊ"}, {w:"森林", p:"ㄙㄣ ㄌㄧㄣˊ"}] },
-        { char: "ㄤ", id: 32, examples: [{w:"糖果", p:"ㄊㄤˊ ㄍㄨㄛˇ"}, {w:"太陽", p:"ㄊㄞˋ ㄧㄤˊ"}] },
-        { char: "ㄥ", id: 33, examples: [{w:"蜜蜂", p:"ㄇㄧˋ ㄈㄥ"}, {w:"電燈", p:"ㄉㄧㄢˋ ㄉㄥ"}] },
-        { char: "ㄦ", id: 34, examples: [{w:"耳朵", p:"ㄦˇ ㄉㄨㄛ"}, {w:"兒子", p:"ㄦˊ ˙ㄗ"}] }
+        { char: "ㄅ", id: 1, examples: [{w:"爸爸", p:"ㄅㄚˋ ˙ㄅㄚ"}, {w:"包子", p:"ㄅㄠ ˙ㄗ"}, {w:"餅乾", p:"ㄅㄧㄥˇ ㄍㄢ"}] },
+        { char: "ㄆ", id: 2, examples: [{w:"蘋果", p:"ㄆㄧㄥˊ ㄍㄨㄛˇ"}, {w:"朋友", p:"ㄆㄥˊ ㄧㄡˇ"}, {w:"葡萄", p:"ㄆㄨˊ ㄊㄠˊ"}] },
+        { char: "ㄇ", id: 3, examples: [{w:"媽媽", p:"ㄇㄚ ˙ㄇㄚ"}, {w:"麵包", p:"ㄇㄧㄢˋ ㄅㄠ"}, {w:"帽子", p:"ㄇㄠˋ ˙ㄗ"}] },
+        { char: "ㄈ", id: 4, examples: [{w:"飛機", p:"ㄈㄟ ㄐㄧ"}, {w:"蜜蜂", p:"ㄇㄧˋ ㄈㄥ"}, {w:"房子", p:"ㄈㄤˊ ˙ㄗ"}] },
+        { char: "ㄉ", id: 5, examples: [{w:"弟弟", p:"ㄉㄧˋ ˙ㄉㄧ"}, {w:"蛋糕", p:"ㄉㄢˋ ㄍㄠ"}, {w:"大象", p:"ㄉㄚˋ ㄒㄧㄤˋ"}] },
+        { char: "ㄊ", id: 6, examples: [{w:"兔子", p:"ㄊㄨˋ ˙ㄗ"}, {w:"太陽", p:"ㄊㄞˋ ㄧㄤˊ"}, {w:"糖果", p:"ㄊㄤˊ ㄍㄨㄛˇ"}] },
+        { char: "ㄋ", id: 7, examples: [{w:"牛奶", p:"ㄋㄧㄡˊ ㄋㄞˇ"}, {w:"奶奶", p:"ㄋㄞˇ ˙ㄋㄞ"}, {w:"檸檬", p:"ㄋㄧㄥˊ ㄇㄥˊ"}] },
+        { char: "ㄌ", id: 8, examples: [{w:"老虎", p:"ㄌㄠˇ ㄏㄨˇ"}, {w:"快樂", p:"ㄎㄨㄞˋ ㄌㄜˋ"}, {w:"樓梯", p:"ㄌㄡˊ ㄊㄧ"}] },
+        { char: "ㄍ", id: 9, examples: [{w:"哥哥", p:"ㄍㄜ ˙ㄍㄜ"}, {w:"蘋果", p:"ㄆㄧㄥˊ ㄍㄨㄛˇ"}, {w:"狗狗", p:"ㄍㄡˇ ˙ㄍㄡ"}] },
+        { char: "ㄎ", id: 10, examples: [{w:"恐龍", p:"ㄎㄨㄥˇ ㄌㄨㄥˊ"}, {w:"卡片", p:"ㄎㄚˇ ㄆㄧㄢˋ"}, {w:"褲子", p:"ㄎㄨˋ ˙ㄗ"}] },
+        { char: "ㄏ", id: 11, examples: [{w:"花朵", p:"ㄏㄨㄚ ㄉㄨㄛˇ"}, {w:"猴子", p:"ㄏㄡˊ ˙ㄗ"}, {w:"蝴蝶", p:"ㄏㄨˊ ㄉㄧㄝˊ"}] },
+        { char: "ㄐ", id: 12, examples: [{w:"雞蛋", p:"ㄐㄧ ㄉㄢˋ"}, {w:"積木", p:"ㄐㄧ ㄇㄨˋ"}, {w:"橘子", p:"ㄐㄩˊ ˙ㄗ"}] },
+        { char: "ㄑ", id: 13, examples: [{w:"氣球", p:"ㄑㄧˋ ㄑㄧㄡˊ"}, {w:"企鵝", p:"ㄑㄧˋ ㄜˊ"}, {w:"巧克力", p:"ㄑㄧㄠˇ ㄎㄜˋ ㄌㄧˋ"}] },
+        { char: "ㄒ", id: 14, examples: [{w:"西瓜", p:"ㄒㄧ ㄍㄨㄚ"}, {w:"星星", p:"ㄒㄧㄥ ㄒㄧㄥ"}, {w:"香蕉", p:"ㄒㄧㄤ ㄐㄧㄠ"}] },
+        { char: "ㄓ", id: 15, examples: [{w:"蜘蛛", p:"ㄓ ㄓㄨ"}, {w:"桌子", p:"ㄓㄨㄛ ˙ㄗ"}, {w:"豬肉", p:"ㄓㄨ ㄖㄡˋ"}] },
+        { char: "ㄔ", id: 16, examples: [{w:"吃飯", p:"ㄔ ㄈㄢˋ"}, {w:"車子", p:"ㄔㄜ ˙ㄗ"}, {w:"長頸鹿", p:"ㄔㄤˊ ㄐㄧㄥˇ ㄌㄨˋ"}] },
+        { char: "ㄕ", id: 17, examples: [{w:"獅子", p:"ㄕ ˙ㄗ"}, {w:"書本", p:"ㄕㄨ ㄅㄣˇ"}, {w:"手錶", p:"ㄕㄡˇ ㄅㄧㄠˇ"}] },
+        { char: "ㄖ", id: 18, examples: [{w:"熱狗", p:"ㄖㄜˋ ㄍㄡˇ"}, {w:"日期", p:"ㄖˋ ㄑㄧˊ"}, {w:"乳牛", p:"ㄖㄨˇ ㄋㄧㄡˊ"}] },
+        { char: "ㄗ", id: 19, examples: [{w:"早安", p:"ㄗㄠˇ ㄢ"}, {w:"走路", p:"ㄗㄡˇ ㄌㄨˋ"}, {w:"紫色", p:"ㄗˇ ㄙㄜˋ"}] },
+        { char: "ㄘ", id: 20, examples: [{w:"草莓", p:"ㄘㄠˇ ㄇㄟˊ"}, {w:"廁所", p:"ㄘㄜˋ ㄙㄨㄛˇ"}, {w:"彩虹", p:"ㄘㄞˇ ㄏㄨㄥˊ"}] },
+        { char: "ㄙ", id: 21, examples: [{w:"松鼠", p:"ㄙㄨㄥ ㄕㄨˇ"}, {w:"森林", p:"ㄙㄣ ㄌㄧㄣˊ"}, {w:"三明治", p:"ㄙㄢ ㄇㄧㄥˊ ㄓˋ"}] },
+        // 介音
+        { char: "ㄧ", id: 35, examples: [{w:"衣服", p:"ㄧ ㄈㄨˊ"}, {w:"椅子", p:"ㄧˇ ˙ㄗ"}, {w:"醫生", p:"ㄧ ㄕㄥ"}] },
+        { char: "ㄨ", id: 36, examples: [{w:"烏龜", p:"ㄨ ㄍㄨㄟ"}, {w:"娃娃", p:"ㄨㄚˊ ˙ㄨㄚ"}, {w:"烏鴉", p:"ㄨ ㄧㄚ"}] },
+        { char: "ㄩ", id: 37, examples: [{w:"雨傘", p:"ㄩˇ ㄙㄢˇ"}, {w:"玉米", p:"ㄩˋ ㄇㄧˇ"}, {w:"月亮", p:"ㄩㄝˋ ㄌㄧㄤˋ"}] },
+        // 韻母
+        { char: "ㄚ", id: 22, examples: [{w:"鴨子", p:"ㄧㄚ ˙ㄗ"}, {w:"牙齒", p:"ㄧㄚˊ ㄔˇ"}, {w:"阿姨", p:"ㄚ ㄧˊ"}] },
+        { char: "ㄛ", id: 23, examples: [{w:"薄荷", p:"ㄅㄛˋ ˙ㄏㄜ"}, {w:"佛祖", p:"ㄈㄛˊ ㄗㄨˇ"}, {w:"老婆", p:"ㄌㄠˇ ㄆㄛˊ"}] },
+        { char: "ㄜ", id: 24, examples: [{w:"天鵝", p:"ㄊㄧㄢ ㄜˊ"}, {w:"可樂", p:"ㄎㄜˇ ㄌㄜˋ"}, {w:"鱷魚", p:"ㄜˋ ㄩˊ"}] },
+        { char: "ㄝ", id: 25, examples: [{w:"爺爺", p:"ㄧㄝˊ ˙ㄧㄝ"}, {w:"葉子", p:"ㄧㄝˋ ˙ㄗ"}, {w:"鞋子", p:"ㄒㄧㄝˊ ˙ㄗ"}] },
+        { char: "ㄞ", id: 26, examples: [{w:"奶奶", p:"ㄋㄞˇ ˙ㄋㄞ"}, {w:"海豚", p:"ㄏㄞˇ ㄊㄨㄣˊ"}, {w:"白色", p:"ㄅㄞˊ ㄙㄜˋ"}] },
+        { char: "ㄟ", id: 27, examples: [{w:"妹妹", p:"ㄇㄟˋ ˙ㄇㄟ"}, {w:"杯子", p:"ㄅㄟ ˙ㄗ"}, {w:"棉被", p:"ㄇㄧㄢˊ ㄅㄟˋ"}] },
+        { char: "ㄠ", id: 28, examples: [{w:"小貓", p:"ㄒㄧㄠˇ ㄇㄠ"}, {w:"草莓", p:"ㄘㄠˇ ㄇㄟˊ"}, {w:"桃子", p:"ㄊㄠˊ ˙ㄗ"}] },
+        { char: "ㄡ", id: 29, examples: [{w:"猴子", p:"ㄏㄡˊ ˙ㄗ"}, {w:"小狗", p:"ㄒㄧㄠˇ ㄍㄡˇ"}, {w:"手套", p:"ㄕㄡˇ ㄊㄠˋ"}] },
+        { char: "ㄢ", id: 30, examples: [{w:"雞蛋", p:"ㄐㄧ ㄉㄢˋ"}, {w:"晚安", p:"ㄨㄢˇ ㄢ"}, {w:"飯糰", p:"ㄈㄢˋ ㄊㄨㄢˊ"}] },
+        { char: "ㄣ", id: 31, examples: [{w:"大門", p:"ㄉㄚˋ ㄇㄣˊ"}, {w:"森林", p:"ㄙㄣ ㄌㄧㄣˊ"}, {w:"枕頭", p:"ㄓㄣˇ ˙ㄊㄡ"}] },
+        { char: "ㄤ", id: 32, examples: [{w:"糖果", p:"ㄊㄤˊ ㄍㄨㄛˇ"}, {w:"太陽", p:"ㄊㄞˋ ㄧㄤˊ"}, {w:"幫忙", p:"ㄅㄤ ㄇㄤˊ"}] },
+        { char: "ㄥ", id: 33, examples: [{w:"蜜蜂", p:"ㄇㄧˋ ㄈㄥ"}, {w:"電燈", p:"ㄉㄧㄢˋ ㄉㄥ"}, {w:"風箏", p:"ㄈㄥ ㄓㄥ"}] },
+        { char: "ㄦ", id: 34, examples: [{w:"耳朵", p:"ㄦˇ ㄉㄨㄛ"}, {w:"兒子", p:"ㄦˊ ˙ㄗ"}, {w:"兒童", p:"ㄦˊ ㄊㄨㄥˊ"}] }
     ];
 
     const colorPalette = ['#4A89A6', '#E59372', '#F08488', '#88B775', '#4AAABF', '#C784A2', '#4B99B6', '#D67B86'];
@@ -331,6 +463,9 @@
     let currentQuizAnswer = null;
     let isQuizActive = false;
     let wrongCount = 0;
+    
+    let isRainActive = false;
+    let rainTimeouts = [];
 
     // --- 音效 ---
     function playTone(freq, type, duration) {
@@ -352,39 +487,30 @@
         if (type === 'wrong') { playTone(150, 'sawtooth', 0.15); setTimeout(()=>playTone(120, 'sawtooth', 0.3), 150); }
     }
 
-    // --- 核心語音播放 (雙模式) ---
-    function playBpm(item) {
+    // --- 核心語音播放 (ID 用於注音發音, text 用於詞彙/系統音) ---
+    // speed 預設 1.0
+    function playBpm(item, speed = 1.0) {
         const idStr = item.id.toString().padStart(2, '0');
-        // MDN Kids 網站路徑
         const mdnUrl = `https://www.mdnkids.com/BoPoMo/audio/${idStr}.mp3`;
         
         const audio = new Audio(mdnUrl);
-        audio.playbackRate = 0.8; // 強制慢速
-        if (audio.preservesPitch !== undefined) audio.preservesPitch = true;
-
-        audio.onplay = () => {
-            voiceStatus.innerText = "🔊 國語日報原音";
-        };
-
-        audio.onerror = () => {
-            console.log("MDN 載入失敗，切換 Google TTS");
-            voiceStatus.innerText = "🔊 Google 智慧發音";
-            playGoogleTTS(item.char, 0.8);
-        };
-
-        audio.play().catch(e => {
-            playGoogleTTS(item.char, 0.8);
-        });
-    }
-
-    // 通用 TTS 播放器
-    function playGoogleTTS(text, speed = 1.0) {
-        const url = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=zh-TW&q=${encodeURIComponent(text)}`;
-        const audio = new Audio(url);
-        
         audio.playbackRate = speed; 
         if (audio.preservesPitch !== undefined) audio.preservesPitch = true;
 
+        audio.onplay = () => { voiceStatus.innerText = "🔊 國語日報原音"; };
+        audio.onerror = () => {
+            console.log("MDN 載入失敗，切換 Google TTS");
+            voiceStatus.innerText = "🔊 Google 智慧發音";
+            playGoogleTTS(item.char, speed);
+        };
+        audio.play().catch(e => { playGoogleTTS(item.char, speed); });
+    }
+
+    function playGoogleTTS(text, speed = 1.0) {
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=zh-TW&q=${encodeURIComponent(text)}`;
+        const audio = new Audio(url);
+        audio.playbackRate = speed; 
+        if (audio.preservesPitch !== undefined) audio.preservesPitch = true;
         audio.play().catch(e => {
             const synth = window.speechSynthesis;
             const u = new SpeechSynthesisUtterance(text);
@@ -403,7 +529,7 @@
         learningGrid.appendChild(btnL);
 
         const btnQ = createBtn(item, bgColor);
-        btnQ.onclick = () => checkAnswer(item, btnQ);
+        btnQ.onclick = () => checkAnswer(item, btnQ, bgColor);
         quizGrid.appendChild(btnQ);
     });
 
@@ -415,9 +541,53 @@
         return btn;
     }
 
+    // --- 雨滴式彈跳 (慢速版) ---
+    function spawnRaindrop() {
+        if (!isRainActive) return;
+        const btns = document.querySelectorAll('#learning-grid .symbol-btn');
+        if (btns.length === 0) return;
+        const randIndex = Math.floor(Math.random() * btns.length);
+        const btn = btns[randIndex];
+        btn.classList.remove('jump-anim');
+        void btn.offsetWidth; 
+        btn.classList.add('jump-anim');
+        
+        // 隨機延遲 1000~3500ms
+        const nextDelay = 1000 + Math.random() * 2500;
+        const timeoutId = setTimeout(spawnRaindrop, nextDelay);
+        rainTimeouts.push(timeoutId);
+    }
+
+    function startRainEffect() {
+        if(isRainActive) return;
+        isRainActive = true;
+        for(let i=0; i<4; i++) {
+            const timeoutId = setTimeout(spawnRaindrop, i * 600);
+            rainTimeouts.push(timeoutId);
+        }
+    }
+
+    function stopRainEffect() {
+        isRainActive = false;
+        rainTimeouts.forEach(id => clearTimeout(id));
+        rainTimeouts = [];
+        document.querySelectorAll('#learning-grid .symbol-btn').forEach(btn => {
+            btn.classList.remove('jump-anim');
+        });
+    }
+
     // --- 學習區邏輯 ---
     function showLearningDetail(item, color) {
-        const wordsHtml = item.examples.map(ex => {
+        const wordsHtml = generateWordsHtml(item);
+        learningDisplay.innerHTML = `
+            <div class="big-symbol" style="color:${color}">${item.char}</div>
+            <div class="examples">${wordsHtml}</div>
+        `;
+        playBpm(item);
+    }
+
+    function generateWordsHtml(item) {
+        return item.examples.map(ex => {
             const chars = ex.w.split('');
             const bopomofos = ex.p.split(' ');
             let rubyHtml = '';
@@ -425,17 +595,11 @@
                 const bpm = bopomofos[i] || ''; 
                 rubyHtml += `<ruby>${char}<rt>${bpm}</rt></ruby>`;
             });
-            // 點擊詞彙 -> 慢速
-            return `<div class="example-tag" onclick="playGoogleTTS('${ex.w}', 0.8); event.stopPropagation();">
+            // 學習區詞彙發音：正常語速
+            return `<div class="example-tag" onclick="playGoogleTTS('${ex.w}', 1.0); event.stopPropagation();">
                         ${rubyHtml} <span class="sound-icon">🔊</span>
                     </div>`;
         }).join('');
-
-        learningDisplay.innerHTML = `
-            <div class="big-symbol" style="color:${color}">${item.char}</div>
-            <div class="examples">${wordsHtml}</div>
-        `;
-        playBpm(item);
     }
 
     // --- 測驗區邏輯 ---
@@ -447,12 +611,16 @@
         if(mode === 'learning') {
             document.getElementById('learning-section').classList.add('active');
             document.querySelectorAll('.nav-btn')[0].classList.add('active');
+            startRainEffect(); 
         } else {
             document.getElementById('quiz-section').classList.add('active');
             document.querySelectorAll('.nav-btn')[1].classList.add('active');
+            stopRainEffect(); 
             resetQuizUI();
         }
     }
+    
+    startRainEffect();
 
     function handleQuizControl() {
         if (isQuizActive) {
@@ -460,6 +628,7 @@
             quizControlBtn.style.transform = "scale(0.95)";
             setTimeout(() => quizControlBtn.style.transform = "scale(1)", 100);
         } else {
+            feedbackOverlay.classList.remove('show');
             startNewQuestion();
         }
     }
@@ -475,6 +644,8 @@
         quizControlBtn.innerText = "🔊 重聽一次";
         quizControlBtn.classList.remove('next-mode');
         
+        quizGrid.classList.remove('disabled');
+
         document.querySelectorAll('#quiz-grid .symbol-btn').forEach(btn => {
             btn.classList.remove('shake', 'correct-pop');
             btn.style.opacity = "1";
@@ -488,19 +659,18 @@
         quizControlBtn.innerText = "🔊 開始出題";
         quizControlBtn.classList.remove('next-mode');
         quizStatus.innerText = "按下按鈕開始挑戰！";
+        quizGrid.classList.add('disabled');
+        feedbackOverlay.classList.remove('show');
     }
 
-    function checkAnswer(selectedItem, btnElement) {
-        if (!isQuizActive) {
-            playSound('wrong'); 
-            quizStatus.innerText = "👉 請先按「下一題」開始喔！";
-            quizControlBtn.classList.add('next-mode');
-            return;
-        }
+    function checkAnswer(selectedItem, btnElement, color) {
+        if (!isQuizActive) return;
 
         if (selectedItem.char === currentQuizAnswer.char) {
+            // 答對
             playSound('correct');
-            showFeedback(true);
+            showFeedback('correct', selectedItem, color);
+            
             btnElement.classList.add('correct-pop');
             fireConfetti();
             
@@ -508,28 +678,37 @@
             scoreVal.innerText = currentScore;
             
             quizStatus.innerText = "✨ 答對了！好棒！";
-            // 系統語音 -> 正常速度
             playGoogleTTS("答對了", 1.0);
+            
             endRound(); 
         } else {
+            // 答錯
             playSound('wrong');
             btnElement.classList.add('shake');
             setTimeout(() => btnElement.classList.remove('shake'), 500);
             
             wrongCount++;
             if (wrongCount >= 3) {
-                showFeedback(false);
+                // 3次錯 -> 揭曉
+                // 找出正確的 item 和 color
+                const correctIndex = zhuyinData.indexOf(currentQuizAnswer);
+                const correctColor = colorPalette[correctIndex % colorPalette.length];
+
+                showFeedback('reveal', currentQuizAnswer, correctColor);
+                
                 quizStatus.innerText = `正確答案是：${currentQuizAnswer.char}`;
-                // 系統語音 -> 正常速度
                 playGoogleTTS(`正確答案是${currentQuizAnswer.char}`, 1.0);
+                
                 document.querySelectorAll('#quiz-grid .symbol-btn').forEach(b => {
                     if(b.innerText === currentQuizAnswer.char) b.classList.add('correct-pop');
                 });
+                
                 currentScore = 0;
                 scoreVal.innerText = 0;
                 endRound();
             } else {
                 quizStatus.innerText = "💪 加油，可以按按鈕重聽一次！";
+                showFeedback('wrong');
             }
         }
     }
@@ -538,13 +717,55 @@
         isQuizActive = false;
         quizControlBtn.innerText = "➡️ 下一題";
         quizControlBtn.classList.add('next-mode');
+        quizGrid.classList.add('disabled');
     }
 
-    function showFeedback(isCorrect) {
-        feedbackOverlay.innerText = isCorrect ? "⭕" : "❌";
-        feedbackOverlay.style.color = isCorrect ? "var(--correct)" : "var(--wrong)";
-        feedbackOverlay.classList.add('show');
-        setTimeout(() => feedbackOverlay.classList.remove('show'), 800);
+    // --- V13 更新：回饋顯示 (支援點擊播放 + 詞彙) ---
+    function showFeedback(mode, item, color = "#4A89A6") {
+        if (mode === 'correct' || mode === 'reveal') {
+            const gifUrl = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHRod2U4bHd4OXhsdG5zYnI4NDA5cGtmeG4xd2EwOG9lMmtmbTludyZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/D0jidt0aW8DD2YZkAB/giphy.gif";
+            const gifHtml = (mode === 'correct') ? `<img src="${gifUrl}" class="feedback-gif" alt="Good Job!">` : '';
+            
+            // 產生詞彙卡片 (V13: 增加詞彙回饋區的樣式)
+            // 為了不與學習區的 ID 衝突，這裡只產生 HTML 結構
+            // 注意: 我們在這裡生成新的 HTML，並且加上 onclick 事件
+            const wordsHtml = item.examples.map(ex => {
+                const chars = ex.w.split('');
+                const bopomofos = ex.p.split(' ');
+                let rubyHtml = '';
+                chars.forEach((char, i) => {
+                    const bpm = bopomofos[i] || ''; 
+                    rubyHtml += `<ruby>${char}<rt>${bpm}</rt></ruby>`;
+                });
+                // 回饋區的詞彙點擊發音
+                return `<div class="feedback-word-tag" onclick="playGoogleTTS('${ex.w}', 1.0); event.stopPropagation();">
+                            ${rubyHtml} <span class="sound-icon">🔊</span>
+                        </div>`;
+            }).join('');
+
+            // V13: 大注音加上 onclick 事件
+            // 注意: 為了傳遞物件，我們這裡直接用閉包概念可能比較複雜，直接組字串
+            // 使用 playBpm 並手動建構一個簡單的 item 物件傳進去
+            const charClickAttr = `onclick="playBpm({id:${item.id}, char:'${item.char}'}); event.stopPropagation();"`;
+
+            feedbackOverlay.innerHTML = `
+                <div class="feedback-container">
+                    ${gifHtml}
+                    <div class="feedback-char" style="background-color: ${color}" ${charClickAttr}>
+                        ${item.char}
+                    </div>
+                    <div class="feedback-words-area">
+                        ${wordsHtml}
+                    </div>
+                </div>
+            `;
+            feedbackOverlay.classList.add('show');
+        } else {
+            // 答錯
+            feedbackOverlay.innerHTML = `<div class="feedback-wrong-text">❌</div>`;
+            feedbackOverlay.classList.add('show');
+            setTimeout(() => feedbackOverlay.classList.remove('show'), 800);
+        }
     }
 
     function fireConfetti() {
